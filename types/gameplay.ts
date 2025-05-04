@@ -42,6 +42,7 @@ export interface GameState extends Game {
   currentRound?: number;
   currentDealerId?: string;
   playerHands?: Record<string, string[]>; // Map of player ID to card IDs
+  playedBlackCards?: string[]; // IDs of black cards that have been played in this game
   cardDeck?: {
     blackCards: string[]; // IDs of black cards in the deck
     whiteCards: string[]; // IDs of white cards in the deck

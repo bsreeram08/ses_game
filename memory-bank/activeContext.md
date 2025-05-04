@@ -1,20 +1,32 @@
-# Active Context: Indian Cards Against Humanity (Post-Custom Rules Definition)
+# Active Context: Indian Cards Against Humanity
 
 ## Current Work Focus
 
-- **Project Re-Planning:** Updating Memory Bank (core docs, feature index, feature overviews) to reflect the newly defined custom ruleset (rotating dealer, collect black cards, custom duration/cards, AI commentary).
-- **Phase 1 Planning (Revised):** Preparing to create detailed implementation plans for the MVP features, starting with User Authentication, considering the impact of the custom rules.
+- **Game Stability & Error Handling:** Implementing robust error tracking with Firebase Analytics and improving game state recovery mechanisms to address issues with corrupted game states.
+- **Core Gameplay Enhancement:** Fixing critical issues with game state management, particularly around player readiness and game initialization.
+- **User Experience Improvements:** Converting full-page errors to toast notifications for a better user experience and providing clear feedback about game state.
 
 ## Immediate Next Steps
 
-1.  **Finalize MVP Feature Plans:** Create/update detailed `feature-plans` for the MVP features (001-006), ensuring they align with the custom ruleset. Start with `001-user-authentication`.
-2.  **Firebase Project Setup:**
-    - Create/confirm a Firebase project.
-    - Configure necessary services (Authentication, Firestore, Realtime Database, Cloud Functions).
-    - Set up initial Firestore security rules (referencing `rules.md` and custom game logic).
-    - Integrate Firebase SDK into the Next.js application (`lib/firebase.ts`) using a placeholder for credentials (Option 1).
-3.  **Core Dependencies Installation:** Install necessary packages (`firebase`, `shadcn-ui`, `react-hook-form`, `zod`, `@tanstack/react-query`, etc.) using `bun`.
-4.  **Begin MVP Feature 1:** Start implementation of User Authentication (`001-user-authentication`) based on its feature plan.
+1. **Expand Error Tracking Coverage:**
+   - Implement error tracking in remaining critical components
+   - Add more detailed analytics events for key user actions
+   - Create a dashboard for monitoring errors in production
+
+2. **Further Game State Improvements:**
+   - Add automated detection of corrupted game states
+   - Implement proactive fixes that run before issues affect gameplay
+   - Add more robust validation for game state transitions
+
+3. **Testing & Validation:**
+   - Conduct thorough testing of the error tracking system
+   - Test game state recovery mechanisms in various scenarios
+   - Verify that toast notifications work correctly across the application
+
+4. **Documentation:**
+   - Update technical documentation with error handling patterns
+   - Document common error scenarios and their solutions
+   - Create troubleshooting guides for users
 
 ## Active Decisions & Considerations
 

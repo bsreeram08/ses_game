@@ -1,4 +1,4 @@
-import { analytics } from "./firebase";
+import { getAnalytics } from "./firebase";
 import {
   logEvent as firebaseLogEvent,
   setUserId as firebaseSetUserId,
@@ -13,12 +13,12 @@ import {
  * @returns The Analytics instance or null.
  */
 const checkAnalytics = (): Analytics | null => {
-  if (!analytics) {
+  if (!getAnalytics()) {
     // Only log warning once per session perhaps? For now, log always if null.
     // console.warn('Firebase Analytics instance not available yet.');
     return null;
   }
-  return analytics;
+  return getAnalytics();
 };
 
 /**

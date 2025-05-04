@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,6 +36,9 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { collection, getDocs, query, orderBy, where } from "firebase/firestore";
+import { db } from "@/lib/firebase/firebase";
+import { CardDeck } from "@/types/cards";
 
 // Define the form schema with Zod
 const createGameSchema = z.object({
@@ -56,18 +59,68 @@ const defaultValues: CreateGameFormValues = {
   cardDeckId: "default", // Default card deck
 };
 
-// Available card decks
-const cardDecks = [
-  { id: "default", name: "Standard Indian Deck" },
-  { id: "bollywood", name: "Bollywood Edition" },
-  { id: "cricket", name: "Cricket Fever" },
-  { id: "food", name: "Indian Cuisine" },
-];
+// Type for simplified card deck display
+type CardDeckDisplay = {
+  id: string;
+  name: string;
+  nsfw: boolean;
+  description: string;
+  blackCardsCount: number;
+  whiteCardsCount: number;
+};
 
 export function CreateGameForm() {
   const { createGame, loading, error } = useGame();
   const router = useRouter();
   const [createdGameId, setCreatedGameId] = useState<string | null>(null);
+  const [cardDecks, setCardDecks] = useState<CardDeckDisplay[]>([]);
+  const [loadingDecks, setLoadingDecks] = useState<boolean>(true);
+  const [deckError, setDeckError] = useState<string | null>(null);
+  
+  // Fetch card decks from Firestore
+  useEffect(() => {
+    const fetchCardDecks = async () => {
+      try {
+        setLoadingDecks(true);
+        setDeckError(null);
+        
+        // Query the decks collection, ordered by isNsfw (false first) and then by name
+        const decksQuery = query(
+          collection(db, 'decks'),
+          orderBy('isNsfw'),
+          orderBy('name')
+        );
+        
+        const decksSnapshot = await getDocs(decksQuery);
+        const fetchedDecks: CardDeckDisplay[] = [];
+        
+        decksSnapshot.forEach((doc) => {
+          const deckData = doc.data() as CardDeck;
+          fetchedDecks.push({
+            id: doc.id,
+            name: deckData.name,
+            nsfw: deckData.isNsfw,
+            description: deckData.description,
+            blackCardsCount: deckData.blackCardsCount,
+            whiteCardsCount: deckData.whiteCardsCount
+          });
+        });
+        
+        setCardDecks(fetchedDecks);
+      } catch (err) {
+        console.error('Error fetching card decks:', err);
+        setDeckError('Failed to load card decks. Please try again.');
+        // Fallback to default decks if there's an error
+        setCardDecks([
+          { id: "india-base", name: "Standard Indian Deck", nsfw: false, description: "The original Indian Cards Against Humanity deck", blackCardsCount: 0, whiteCardsCount: 0 },
+        ]);
+      } finally {
+        setLoadingDecks(false);
+      }
+    };
+    
+    fetchCardDecks();
+  }, []);
 
   // Initialize the form with react-hook-form and zod validation
   const form = useForm<CreateGameFormValues>({
@@ -163,24 +216,70 @@ export function CreateGameForm() {
                 <FormItem>
                   <FormLabel>Card Deck</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      // If NSFW deck is selected, automatically disable family mode
+                      const selectedDeck = cardDecks.find(deck => deck.id === value);
+                      if (selectedDeck?.nsfw) {
+                        form.setValue('familyMode', false);
+                      }
+                    }}
                     defaultValue={field.value}
+                    disabled={loadingDecks}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a card deck" />
+                        {loadingDecks ? (
+                          <div className="flex items-center">
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <span>Loading decks...</span>
+                          </div>
+                        ) : (
+                          <SelectValue placeholder="Select a card deck" />
+                        )}
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      {cardDecks.map((deck) => (
-                        <SelectItem key={deck.id} value={deck.id}>
-                          {deck.name}
+                    <SelectContent className="max-h-[300px]">
+                      {deckError ? (
+                        <SelectItem value="" disabled>
+                          Error loading decks. Try again.
                         </SelectItem>
-                      ))}
+                      ) : (
+                        <>
+                          {/* Group decks by categories */}
+                          <SelectItem value="" disabled>
+                            -- Regular Decks ({cardDecks.filter(deck => !deck.nsfw).length}) --
+                          </SelectItem>
+                          {cardDecks.filter(deck => !deck.nsfw).map((deck) => (
+                            <SelectItem key={deck.id} value={deck.id}>
+                              {deck.name} ({deck.blackCardsCount}B/{deck.whiteCardsCount}W)
+                            </SelectItem>
+                          ))}
+                          
+                          <SelectItem value="" disabled>
+                            -- NSFW Decks ({cardDecks.filter(deck => deck.nsfw).length}) --
+                          </SelectItem>
+                          {cardDecks.filter(deck => deck.nsfw).map((deck) => (
+                            <SelectItem key={deck.id} value={deck.id}>
+                              {deck.name} ({deck.blackCardsCount}B/{deck.whiteCardsCount}W)
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormDescription>
                     Choose a themed deck of cards
+                    {cardDecks.find(deck => deck.id === field.value)?.nsfw && (
+                      <p className="text-red-500 mt-1 text-xs">
+                        Warning: This deck contains adult content and is not suitable for family play.
+                      </p>
+                    )}
+                    {!loadingDecks && cardDecks.find(deck => deck.id === field.value) && (
+                      <p className="text-xs mt-1">
+                        {cardDecks.find(deck => deck.id === field.value)?.description}
+                      </p>
+                    )}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -190,22 +289,34 @@ export function CreateGameForm() {
             <FormField
               control={form.control}
               name="familyMode"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>Family Mode</FormLabel>
-                    <FormDescription>
-                      Filter out inappropriate content
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                // Check if an NSFW deck is selected
+                const selectedDeckId = form.getValues('cardDeckId');
+                const isNsfwDeckSelected = cardDecks.find(deck => deck.id === selectedDeckId)?.nsfw;
+                
+                return (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Family Mode</FormLabel>
+                      <FormDescription>
+                        Filter out inappropriate content
+                        {isNsfwDeckSelected && (
+                          <p className="text-red-500 mt-1 text-xs">
+                            Family mode is disabled when using NSFW decks
+                          </p>
+                        )}
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={isNsfwDeckSelected}
+                      />
+                    </FormControl>
+                  </FormItem>
+                );
+              }}
             />
 
             <Button type="submit" className="w-full" disabled={loading}>
