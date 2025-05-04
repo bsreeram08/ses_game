@@ -1,27 +1,87 @@
 "use client";
 
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Card, CardHeader, CardContent } from "../../components/ui/card";
-import { AnonymousConversion } from "../../components/auth/AnonymousConversion";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { AnonymousConversion } from "@/components/auth/AnonymousConversion";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
+  // Debug output to help diagnose the issue
   useEffect(() => {
-    if (!user) {
+    console.log("Dashboard render state:", {
+      loading,
+      userExists: !!user,
+      userId: user?.uid,
+    });
+  }, [loading, user]);
+
+  useEffect(() => {
+    // Only redirect if not loading and no user
+    if (!loading && !user) {
+      console.log("No authenticated user, redirecting to login");
       router.push("/login");
     }
-  }, [user, router]);
+  }, [user, loading, router]);
 
+  // Add a client-side effect to handle potential loading state issues
+  const [loadingTooLong, setLoadingTooLong] = useState(false);
+
+  useEffect(() => {
+    // If loading takes more than 3 seconds, set loadingTooLong to true
+    let timeout: NodeJS.Timeout;
+    if (loading) {
+      timeout = setTimeout(() => {
+        setLoadingTooLong(true);
+        console.log("Loading timeout triggered");
+      }, 3000);
+    }
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [loading]);
+
+  // Show loading state while authentication is being determined
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+          <p className="text-lg">Loading your dashboard...</p>
+
+          {loadingTooLong && (
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground mb-2">
+                Taking longer than expected...
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  // Force reload the page
+                  window.location.reload();
+                }}
+              >
+                Reload Page
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // If not loading and no user, show a simple message (will redirect in useEffect)
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-pulse text-lg">Loading...</div>
+        <div className="animate-pulse text-lg">Redirecting to login...</div>
       </div>
     );
   }

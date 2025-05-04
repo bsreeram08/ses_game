@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../lib/firebase/firebase";
+import { auth, db } from "@/lib/firebase/firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -11,7 +11,10 @@ import {
   User,
   UserCredential,
   AuthError as FirebaseAuthError,
+  browserLocalPersistence,
+  setPersistence,
 } from "firebase/auth";
+import { generateRandomName } from "@/lib/utils/nameGenerator";
 import { doc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
@@ -23,27 +26,101 @@ export const useAuth = () => {
   const [error, setError] = useState<AuthError | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        const userDoc = doc(db, "users", currentUser.uid);
+  // Separate function to update user document to avoid blocking auth flow
+  const updateUserDocument = async (
+    currentUser: User,
+    customDisplayName?: string
+  ) => {
+    try {
+      const userDoc = doc(db, "users", currentUser.uid);
+      const displayName =
+        customDisplayName ||
+        currentUser.displayName ||
+        `Guest-${currentUser.uid.substring(0, 5)}`;
+
+      // For anonymous users, ensure isAnonymous flag is set
+      if (currentUser.isAnonymous) {
         await setDoc(
           userDoc,
           {
-            displayName: currentUser.displayName || "",
+            displayName,
+            email: currentUser.email || "",
+            photoURL: currentUser.photoURL || "",
+            isAnonymous: true,
+            createdAt: new Date(), // Include createdAt for consistency
+            updatedAt: new Date(),
+          },
+          { merge: true }
+        );
+      } else {
+        await setDoc(
+          userDoc,
+          {
+            displayName,
             email: currentUser.email || "",
             photoURL: currentUser.photoURL || "",
             updatedAt: new Date(),
           },
           { merge: true }
         );
-      } else {
-        setUser(null);
       }
+      console.log("User document updated successfully");
+    } catch (err) {
+      console.error(
+        "Error updating user document, but auth flow continues:",
+        err
+      );
+      // Don't rethrow - we want to silently fail here to prevent auth flow issues
+    }
+  };
+
+  useEffect(() => {
+    // Set loading state immediately
+    setLoading(true);
+
+    // Set up persistence to LOCAL (browser localStorage)
+    setPersistence(auth, browserLocalPersistence).catch((error) => {
+      console.error("Error setting persistence:", error);
+      // If persistence fails, we should still continue with the auth flow
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    // Create a timeout to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+      setLoading(false);
+      console.log("Auth loading timed out after 5 seconds");
+    }, 5000);
+
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      // Clear the timeout since we got a response
+      clearTimeout(loadingTimeout);
+
+      if (currentUser) {
+        console.log("Auth state changed: User logged in", currentUser.uid);
+        // Set user state immediately - don't wait for Firestore operations
+        setUser(currentUser);
+
+        // Handle Firestore operations separately and don't block auth flow
+        // This prevents the infinite loop if Firestore operations fail
+        setTimeout(() => {
+          updateUserDocument(currentUser).catch((err) => {
+            console.error("Background user document update failed:", err);
+          });
+        }, 0);
+
+        // Set loading to false immediately after setting user
+        setLoading(false);
+      } else {
+        console.log("Auth state changed: No user");
+        setUser(null);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      clearTimeout(loadingTimeout);
+      unsubscribe();
+    };
   }, []);
 
   const signUp = async (
@@ -136,23 +213,38 @@ export const useAuth = () => {
   const signInAnonymous = async () => {
     setError(null);
     try {
-      const result = await signInAnonymously(auth);
+      // Set loading state to true before attempting sign in
+      setLoading(true);
 
-      // Create a basic profile for anonymous user
-      if (result.user) {
-        const userDoc = doc(db, "users", result.user.uid);
-        await setDoc(
-          userDoc,
-          {
-            displayName: `Guest-${result.user.uid.substring(0, 5)}`,
-            isAnonymous: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          { merge: true }
-        );
+      // Generate a random Indian-themed name for the anonymous user
+      const randomName = generateRandomName();
+
+      // Attempt anonymous sign in
+      const result = await signInAnonymously(auth);
+      console.log("Anonymous sign in successful", result.user.uid);
+
+      try {
+        // Update the user profile with the random name
+        await updateProfile(result.user, {
+          displayName: randomName,
+        });
+        console.log("Profile updated with random name:", randomName);
+
+        // Create a basic profile for anonymous user in a non-blocking way
+        if (result.user) {
+          // Use the updateUserDocument function to handle Firestore operations
+          // This prevents blocking the auth flow if Firestore operations fail
+          updateUserDocument(result.user, randomName);
+        }
+      } catch (profileError) {
+        // Log the error but continue with authentication
+        console.error("Error updating profile, but continuing:", profileError);
       }
 
+      // Set loading to false before navigation
+      setLoading(false);
+
+      // Explicitly navigate to dashboard after successful login
       router.push("/dashboard");
       return result;
     } catch (err) {
@@ -161,6 +253,8 @@ export const useAuth = () => {
         code: firebaseError.code || "unknown",
         message: firebaseError.message || "Error signing in anonymously",
       });
+      // Set loading to false on error
+      setLoading(false);
       throw err;
     }
   };

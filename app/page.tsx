@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "../components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,18 +9,20 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
-import { useAuth } from "../hooks/useAuth";
-import { useRouter } from "next/navigation";
+} from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Home() {
   const { signInAnonymous, loading } = useAuth();
-  const router = useRouter();
 
   const handleGuestLogin = async () => {
     try {
-      await signInAnonymous();
-      router.push("/dashboard");
+      // Show loading state in the button
+      const result = await signInAnonymous();
+      console.log("Anonymous login successful:", result.user.uid);
+
+      // The router.push is handled in the signInAnonymous function
+      // This ensures proper state management before navigation
     } catch (error) {
       console.error("Anonymous login failed:", error);
     }
@@ -53,8 +55,16 @@ export default function Home() {
               size="lg"
               onClick={handleGuestLogin}
               disabled={loading}
+              className="border border-dashed border-gray-300"
             >
-              Play as Guest
+              {loading ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                  Please wait...
+                </>
+              ) : (
+                "Play as Guest"
+              )}
             </Button>
           </div>
         </div>

@@ -12,14 +12,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { useAuth } from "../../hooks/useAuth";
-import { EmailAuthProvider, linkWithCredential } from "firebase/auth";
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  EmailAuthProvider,
+  linkWithCredential,
+  updateProfile,
+} from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../../lib/firebase/firebase";
+import { db } from "@/lib/firebase/firebase";
 
 const conversionSchema = z.object({
   email: z.string().email({ message: "Valid email is required" }),
@@ -72,9 +76,12 @@ export function AnonymousConversion() {
       );
 
       // Link anonymous account with credential
-      await linkWithCredential(user, credential);
+      const result = await linkWithCredential(user, credential);
 
-      // Update profile
+      // Update profile with display name
+      await updateProfile(result.user, { displayName: data.displayName });
+
+      // Update Firestore document
       await updateDoc(doc(db, "users", user.uid), {
         displayName: data.displayName,
         email: data.email,
@@ -82,8 +89,13 @@ export function AnonymousConversion() {
         updatedAt: new Date(),
       });
 
+      // Show success message and close dialog after delay
       setSuccess(true);
-      setTimeout(() => setOpen(false), 2000);
+      setTimeout(() => {
+        setOpen(false);
+        // Reload the page to reflect changes
+        window.location.reload();
+      }, 2000);
     } catch (err) {
       const errorMessage =
         err instanceof Error
@@ -98,7 +110,12 @@ export function AnonymousConversion() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="ml-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-2"
+          aria-label="Save Account"
+        >
           Save Account
         </Button>
       </DialogTrigger>

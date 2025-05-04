@@ -4,9 +4,9 @@ This index tracks the status and links to documentation for all planned features
 
 ## Phase 1: MVP (Minimum Viable Product)
 
-| ID  | Feature                      | Status  | Overview                              | Plan                                       | Notes                                                         |
-| :-: | :--------------------------- | :------ | :------------------------------------ | :----------------------------------------- | :------------------------------------------------------------ |
-| 001 | User Authentication          | Planned | [features/001-user-authentication.md] | [feature-plans/001-user-authentication.md] | Core login, registration, basic profiles                      |
+| ID  | Feature                      | Status    | Overview                              | Plan                                       | Notes                                                         |
+| :-: | :--------------------------- | :-------- | :------------------------------------ | :----------------------------------------- | :------------------------------------------------------------ |
+| 001 | User Authentication          | Completed | [features/001-user-authentication.md] | [feature-plans/001-user-authentication.md] | Email/password, social login, anonymous login with random Indian-themed names, account conversion |
 | 002 | Game Creation & Lobby        | Planned | [features/002-game-creation-lobby.md] | [feature-plans/002-game-creation-lobby.md] | Create game, invite link, waiting room, custom duration/turns |
 | 003 | Core Gameplay (Custom Rules) | Planned | [features/003-core-gameplay.md]       | [feature-plans/003-core-gameplay.md]       | Rotating dealer, collect black cards, 1-2 answers             |
 | 004 | Basic UI/UX                  | Planned | [features/004-basic-ui-ux.md]         | [feature-plans/004-basic-ui-ux.md]         | Mobile-responsive, basic components                           |

@@ -7,9 +7,9 @@ import {
   signInWithGoogle,
   signInWithGitHub,
   signOut,
-} from "../lib/firebase/auth";
-import { Skeleton } from "../components/ui/skeleton";
-import { trackEvent, trackUserId } from "../lib/firebase/analytics";
+} from "@/lib/firebase/auth";
+import { Skeleton } from "@/components/ui/skeleton";
+import { trackEvent, trackUserId } from "@/lib/firebase/analytics";
 
 interface AuthContextType {
   user: User | null;
