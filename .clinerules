@@ -1,0 +1,187 @@
+# Cline Rules: Indian Cards Against Humanity
+
+## Core Principle: Memory Bank Reliance
+
+- My memory resets between sessions. I **MUST** follow the `memory_bank_strategy` defined below at the start of **EVERY** task to regain context.
+- The Memory Bank is the single source of truth for project state, decisions, and progress.
+
+## Documentation Workflow
+
+- **Updates:** Memory Bank files **MUST** be updated according to the `memory_bank_updates` strategy defined below.
+- **Clarity:** Documentation must be precise, clear, and reflect the _current_ state accurately.
+
+## Feature Management (Remains as previously defined)
+
+- **Structure:** Features are managed within the `memory-bank/` directory using:
+  - `memory-bank/feature-index.md`: An index listing all features, their status, and links to their respective files.
+  - `memory-bank/features/`: Contains high-level overview files for each feature (e.g., `001-user-authentication.md`).
+  - `memory-bank/feature-plans/`: Contains detailed implementation plans for features currently under development or being planned.
+- **Workflow:**
+  1.  New features are first added to `feature-index.md` and a high-level overview is created in `memory-bank/features/`.
+  2.  Before starting implementation, a detailed plan is created in `memory-bank/feature-plans/`.
+  3.  Progress and status updates for features are tracked in `feature-index.md` and reflected in `activeContext.md` and `progress.md`.
+- **Referencing:** When working on a feature, I must reference its corresponding files in `memory-bank/features/` and `memory-bank/feature-plans/`.
+
+## Task Execution (Act Mode)
+
+1.  **Context Load:** Follow `memory_bank_strategy.if_memory_bank_exists`. Read Memory Bank (core files + feature index + decision log).
+2.  **Task Analysis:** Understand the request and identify the relevant feature(s).
+3.  **Plan Review:** Consult the relevant `feature-plan` if available. If not, create one (in Plan Mode if necessary).
+4.  **Implementation:** Execute the task following `.windsurfrules` and the feature plan.
+5.  **Documentation:** Update Memory Bank files as needed per `memory_bank_updates`.
+6.  **Completion:** Use `attempt_completion` tool upon task completion.
+
+## Planning (Plan Mode)
+
+1.  **Context Load:** Follow `memory_bank_strategy.if_memory_bank_exists`. Read Memory Bank (core files + feature index + decision log).
+2.  **Information Gathering:** Use tools (`read_file`, `list_files`, etc.) or `ask_followup_question` if needed.
+3.  **Feature Planning:** If the task involves a new feature or significant changes, create/update the relevant `feature-plan` in `memory-bank/feature-plans/`.
+4.  **Strategy Development:** Outline the approach using `plan_mode_respond`.
+5.  **User Confirmation:** Get user approval on the plan before requesting a switch to Act Mode.
+
+## Adherence to Project Rules
+
+- Strictly follow the guidelines defined in `.windsurfrules` regarding code style, architecture, and technology usage.
+
+---
+
+## Memory Bank Strategy (Adapted from Sample)
+
+memory_bank_strategy:
+initialization: > 1. **CHECK FOR MEMORY BANK:**
+<thinking>First, check if the memory-bank/ directory exists.</thinking>
+<list_files><path>.</path><recursive>false</recursive></list_files> 2. **IF `memory-bank/` DOES EXIST, PROCEED TO: `if_memory_bank_exists`.** 3. **IF `memory-bank/` DOES NOT EXIST, PROCEED TO: `if_no_memory_bank`.**
+
+if_no_memory_bank: > 1. **Inform the User:** "No Memory Bank was found. I recommend creating one to maintain project context." 2. **Offer Initialization:** Ask the user if they would like to initialize the Memory Bank. 3. **Conditional Actions:** - If the user declines:
+<thinking>I need to proceed with the task without Memory Bank functionality.</thinking>
+a. Inform the user that the Memory Bank will not be created.
+b. Set the status to '[MEMORY BANK: INACTIVE]'.
+c. Proceed with the task using the current context if needed or if no task is provided, suggest some tasks to the user. - If the user agrees:
+<thinking>I need to create the `memory-bank/` directory and core files (projectbrief, productContext, activeContext, progress, systemPatterns, techContext, decisionLog, feature-index). I should use write_to_file for this, one file at a time, waiting for confirmation. The initial content for each file is defined below or already exists. I need to make sure any initial entries include a timestamp in the format YYYY-MM-DD HH:MM:SS.</thinking>
+a. Create the `memory-bank/` directory (if not implicitly created by write_to_file).
+b. Create `memory-bank/projectbrief.md` (if it doesn't exist, prompt user for info or use default). WAIT.
+c. Create `memory-bank/productContext.md` with `initial_content`. WAIT.
+d. Create `memory-bank/activeContext.md` with `initial_content`. WAIT.
+e. Create `memory-bank/progress.md` with `initial_content`. WAIT.
+f. Create `memory-bank/systemPatterns.md` with `initial_content`. WAIT.
+g. Create `memory-bank/techContext.md` (populate based on project). WAIT.
+h. Create `memory-bank/decisionLog.md` with `initial_content`. WAIT.
+i. Create `memory-bank/feature-index.md` (populate based on project brief/features). WAIT.
+j. Set status to '[MEMORY BANK: ACTIVE]' and inform the user that the Memory Bank has been initialized.
+
+initial_content:
+productContext.md: | # Product Context
+This file provides a high-level overview of the project and the expected product.
+"[YYYY-MM-DD HH:MM:SS]" - Initialized.
+_ ## Project Goal
+_ (To be filled based on project brief/initial request) ## Key Features
+_ (To be filled based on project brief/initial request) ## Overall Architecture
+_ (To be filled based on project brief/initial request)
+activeContext.md: | # Active Context
+This file tracks the project's current status, including recent changes, current goals, and open questions.
+"[YYYY-MM-DD HH:MM:SS]" - Initialized.
+_ ## Current Focus
+_ Initial project setup. ## Recent Changes
+_ Memory Bank initialized. ## Open Questions/Issues
+_
+progress.md: | # Progress
+This file tracks the project's progress using a task list format.
+"[YYYY-MM-DD HH:MM:SS]" - Initialized.
+_ ## Completed Tasks
+_ Memory Bank Initialized. ## Current Tasks
+_ Project Setup. ## Next Steps
+_ (Define based on initial request)
+decisionLog.md: | # Decision Log
+This file records architectural and implementation decisions.
+"[YYYY-MM-DD HH:MM:SS]" - Initialized.
+_ ## Decision
+_ Initial Memory Bank structure adopted. ## Rationale
+_ To maintain project context and track progress/decisions effectively. ## Implementation Details
+_ Core files created: projectbrief, productContext, activeContext, progress, systemPatterns, techContext, decisionLog, feature-index.
+systemPatterns.md: | # System Patterns
+This file documents recurring patterns and standards used in the project.
+"[YYYY-MM-DD HH:MM:SS]" - Initialized.
+_ ## Coding Patterns
+_ (Refer to .windsurfrules) ## Architectural Patterns
+_ (To be defined - likely Next.js App Router, Firebase BaaS) ## Testing Patterns
+_ (To be defined)
+
+if*memory_bank_exists: > 1. \*\*READ \_ALL* MANDATORY MEMORY BANK FILES**
+<thinking>I will read all mandatory memory bank files, one at a time, and wait for confirmation after each one.</thinking>
+a. **MANDATORY:** Read `memory-bank/projectbrief.md`. <read_file><path>memory-bank/projectbrief.md</path></read_file> WAIT.
+b. **MANDATORY:** Read `memory-bank/productContext.md`. <read_file><path>memory-bank/productContext.md</path></read_file> WAIT.
+c. **MANDATORY:** Read `memory-bank/activeContext.md`. <read_file><path>memory-bank/activeContext.md</path></read_file> WAIT.
+d. **MANDATORY:** Read `memory-bank/systemPatterns.md`. <read_file><path>memory-bank/systemPatterns.md</path></read_file> WAIT.
+e. **MANDATORY:** Read `memory-bank/techContext.md`. <read_file><path>memory-bank/techContext.md</path></read_file> WAIT.
+f. **MANDATORY:** Read `memory-bank/decisionLog.md`. <read_file><path>memory-bank/decisionLog.md</path></read_file> WAIT.
+g. **MANDATORY:** Read `memory-bank/progress.md`. <read_file><path>memory-bank/progress.md</path></read_file> WAIT.
+h. **MANDATORY:\*\* Read `memory-bank/feature-index.md`. <read_file><path>memory-bank/feature-index.md</path></read_file> WAIT. 2. Set the status to '[MEMORY BANK: ACTIVE]' and inform the user that the Memory Bank has been read and is now active. 3. Proceed with the task using the context from the Memory Bank or if no task is provided, suggest some tasks to the user.
+
+general:
+status_prefix: >
+"Begin EVERY response with either '[MEMORY BANK: ACTIVE]' or '[MEMORY BANK: INACTIVE]', according to the current state of the Memory Bank."
+
+memory_bank_updates:
+frequency: "UPDATE MEMORY BANK THROUGHOUT THE CHAT SESSION, WHEN NOTABLE EVENTS OCCUR IN THE PROJECT."
+projectbrief.md:
+trigger: "When the core project goal, scope, or fundamental requirements change significantly. Use judgment."
+action: >
+<thinking>A fundamental change requires updating projectbrief.md.</thinking>
+Use `replace_in_file` to modify relevant sections. Add a timestamped footnote summarizing the change.
+format: "[YYYY-MM-DD HH:MM:SS] - [Summary of Change]"
+productContext.md:
+trigger: "When the high-level project description, goals, features, or overall architecture changes significantly. Use judgment."
+action: >
+<thinking>A fundamental change warrants an update to productContext.md.</thinking>
+Use `replace_in_file` to modify relevant sections. Add a timestamped footnote summarizing the change.
+format: "[YYYY-MM-DD HH:MM:SS] - [Summary of Change]"
+systemPatterns.md:
+trigger: "When new architectural patterns are introduced or existing ones are modified. Use judgment."
+action: >
+<thinking>I need to update systemPatterns.md.</thinking>
+Use `replace_in_file` to append or modify patterns. Add a timestamped entry.
+format: |
+---
+**[YYYY-MM-DD HH:MM:SS] - [Pattern Name/Change Summary]**
+[Description of pattern/change]
+techContext.md:
+trigger: "When core technologies, dependencies, or technical constraints change."
+action: >
+<thinking>I need to update techContext.md.</thinking>
+Use `replace_in_file` to modify relevant sections. Add a timestamped footnote summarizing the change.
+format: "[YYYY-MM-DD HH:MM:SS] - [Summary of Change]"
+decisionLog.md:
+trigger: "When a significant decision is made (new component, data flow change, technology choice, etc.). Use judgment."
+action: >
+<thinking>I need to update decisionLog.md.</thinking>
+Use `replace_in_file` to _append_ new information below the last entry. Never overwrite. Always include a timestamp.
+format: |
+---
+**Decision [YYYY-MM-DD HH:MM:SS]:** [Summary of Decision]
+**Rationale:** [Reasoning behind the decision]
+**Implementation Details:** (Optional) [How it was/will be implemented]
+activeContext.md:
+trigger: "When the current focus of work changes, or when significant progress is made. Use judgment."
+action: >
+<thinking>I need to update activeContext.md.</thinking>
+Use `replace_in_file` to modify the relevant section (Current Focus, Recent Changes, Open Questions/Issues). Add a timestamped entry within the section.
+format: "_ [YYYY-MM-DD HH:MM:SS] - [Summary of Change/Focus/Issue]"
+progress.md:
+trigger: "When a task begins, is completed, or its status changes. Use judgment."
+action: >
+<thinking>I need to update progress.md.</thinking>
+Use `replace_in_file` to add/move/update tasks under the relevant section (Completed, Current, Next). Add a timestamped entry.
+format: "_ [YYYY-MM-DD HH:MM:SS] - [Task Description] - [Status (e.g., Started, Completed, Blocked)]"
+feature-index.md:
+trigger: "When a feature's status changes (Planned -> In Progress -> Completed), or when new features are added."
+action: >
+<thinking>I need to update feature-index.md.</thinking>
+Use `replace_in_file` to update the status column for the relevant feature row or add new rows.
+format: N/A (Update table directly)
+
+umb:
+trigger: "^(Update Memory Bank|UMB)$"
+instructions: "- Halt Current Task: Stop current activity\n- Acknowledge Command: '[MEMORY BANK: UPDATING]'\n- Review Chat History"
+core_update_process: > 1. Current Session Review: - Analyze complete chat history since last UMB or start. - Identify significant changes, decisions, or progress not yet logged. - Summarize key points for each relevant memory bank file. 2. Memory Bank Synchronization: - Update all affected *.md files using the appropriate update strategy (`memory_bank_updates`). - Ensure all updates are timestamped when applicable. - Document continuation points in `activeContext.md`.
+task_focus: "During a UMB update, focus on capturing any notable occurrences that happened *during the chat session*. Append this information to the appropriate Memory Bank files and timestamp when applicable. *DO NOT\* overwrite existing entries UNLESS it's appropriate."
+post_umb_actions: "- Memory Bank fully synchronized.\n- All mode contexts preserved.\n- Session can be safely closed.\n- Next assistant will have complete context."
