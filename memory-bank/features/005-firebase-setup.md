@@ -14,7 +14,7 @@ Set up the necessary Firebase project, configure required services (Auth, Firest
   - Cloud Functions (Node.js environment).
 - **SDK Integration:**
   - Install the Firebase client SDK (`firebase`).
-  - Create a Firebase initialization file (`src/lib/firebase.ts` or similar) with project configuration credentials.
+  - Create a Firebase initialization file (`lib/firebase.ts` or similar) with project configuration credentials.
   - Initialize Firebase app instance.
   - Export necessary Firebase service instances (auth, db, rtdb).
 - **Firestore Security Rules:** Implement basic security rules allowing authenticated users read/write access to their own data and game data as needed for MVP (referencing `rules.md` examples).

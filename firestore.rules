@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User profiles - allow users to read any profile but only write to their own
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Games - allow authenticated users to create games
+    match /games/{gameId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      // Only allow updates if the user is in the game
+      allow update: if request.auth != null && (
+        exists(/databases/$(database)/documents/games/$(gameId)) && 
+        (
+          // User is the host
+          get(/databases/$(database)/documents/games/$(gameId)).data.hostId == request.auth.uid ||
+          // User is a player in the game
+          request.auth.uid in get(/databases/$(database)/documents/games/$(gameId)).data.players
+        )
+      );
+      // Only allow deletion by the host
+      allow delete: if request.auth != null && 
+        exists(/databases/$(database)/documents/games/$(gameId)) && 
+        get(/databases/$(database)/documents/games/$(gameId)).data.hostId == request.auth.uid;
+    }
+    
+    // Invite codes - allow authenticated users to read and create
+    match /inviteCodes/{code} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow delete: if request.auth != null && 
+        exists(/databases/$(database)/documents/inviteCodes/$(code)) && 
+        exists(/databases/$(database)/documents/games/$(get(/databases/$(database)/documents/inviteCodes/$(code)).data.gameId)) &&
+        get(/databases/$(database)/documents/games/$(get(/databases/$(database)/documents/inviteCodes/$(code)).data.gameId)).data.hostId == request.auth.uid;
+    }
+  }
+}

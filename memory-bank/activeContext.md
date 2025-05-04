@@ -12,14 +12,14 @@
     - Create/confirm a Firebase project.
     - Configure necessary services (Authentication, Firestore, Realtime Database, Cloud Functions).
     - Set up initial Firestore security rules (referencing `rules.md` and custom game logic).
-    - Integrate Firebase SDK into the Next.js application (`src/lib/firebase.ts`) using a placeholder for credentials (Option 1).
+    - Integrate Firebase SDK into the Next.js application (`lib/firebase.ts`) using a placeholder for credentials (Option 1).
 3.  **Core Dependencies Installation:** Install necessary packages (`firebase`, `shadcn-ui`, `react-hook-form`, `zod`, `@tanstack/react-query`, etc.) using `bun`.
 4.  **Begin MVP Feature 1:** Start implementation of User Authentication (`001-user-authentication`) based on its feature plan.
 
 ## Active Decisions & Considerations
 
 - **Package Manager:** Confirmed use of `bun`.
-- **Firebase Configuration:** Proceeding with Option 1 (placeholder file `src/lib/firebase.ts` to be created). User will add credentials manually.
+- **Firebase Configuration:** Proceeding with Option 1 (placeholder file `lib/firebase.ts` to be created). User will add credentials manually.
 - **Initial Card Data:** Confirmed cards will exist in the database; games will reference a card DB ID during creation.
 - **Custom Rules Impact:** Need to carefully consider how the rotating dealer, black card collection, and customizable duration affect the implementation of Core Gameplay (003) and Game Creation (002) features during detailed planning.
 - **AI Feature (106):** Integration details (specific AI service, API keys, prompt engineering) deferred to Phase 2 planning.
