@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useGame } from "@/hooks/useGame";
 import { Game, GameStatus } from "@/types/game";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Plus, Users, Clock, ArrowRight, Loader2 } from "lucide-react";
 import { AnonymousConversion } from "@/components/auth/AnonymousConversion";
 import { toast } from "sonner";
+import { RelativeTime } from "@/components/ui/RelativeTime";
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
@@ -44,49 +45,84 @@ export default function Dashboard() {
   const [joiningGame, setJoiningGame] = useState(false);
   const [loadingTooLong, setLoadingTooLong] = useState(false);
 
-  // Debug output to help diagnose the issue
-  useEffect(() => {
-    console.log("Dashboard render state:", {
-      authLoading,
-      userExists: !!user,
-      userId: user?.uid,
-    });
-  }, [authLoading, user]);
+  // Use a ref to track if the component is mounted
+  const isMounted = useRef(true);
+  // Use a ref to track if we've already set up the listener
+  const listenerSetup = useRef(false);
 
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
-      console.log("No authenticated user, redirecting to login");
       router.push("/login");
     }
   }, [user, authLoading, router]);
 
-  // Fetch active games when user is available
+  // Set up cleanup on component unmount
   useEffect(() => {
-    const fetchGames = async () => {
-      if (user) {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Fetch active games once on component mount
+  useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+    
+    const setupListener = async () => {
+      // Only proceed if user exists and we haven't set up the listener yet
+      if (!user || listenerSetup.current) return;
+      
+      try {
+        // Mark that we've set up the listener
+        listenerSetup.current = true;
         setLoadingGames(true);
-        try {
-          const games = await getActiveGames();
-          setActiveGames(games);
-        } catch (error) {
-          console.error("Error fetching games:", error);
-        } finally {
+        
+        // Use a real-time listener for active games
+        unsubscribe = getActiveGames(
+          true,
+          // onUpdate callback
+          (games) => {
+            // Only update state if component is still mounted
+            if (isMounted.current) {
+              setActiveGames(games);
+              setLoadingGames(false);
+            }
+          },
+          // onError callback
+          (error) => {
+            // Only update state if component is still mounted
+            if (isMounted.current) {
+              toast.error("Error loading games");
+              setLoadingGames(false);
+            }
+          }
+        ) as () => void;
+      } catch (error) {
+        if (isMounted.current) {
           setLoadingGames(false);
+          toast.error("Failed to load games");
         }
       }
     };
-
-    fetchGames();
-  }, [user, getActiveGames]);
+    
+    setupListener();
+    
+    // Return cleanup function to unsubscribe when component unmounts
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, []); // Empty dependency array - only run once on mount
 
   // Handle loading timeout
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     if (authLoading) {
       timeout = setTimeout(() => {
-        setLoadingTooLong(true);
-        console.log("Loading timeout triggered");
+        if (isMounted.current) {
+          setLoadingTooLong(true);
+        }
       }, 3000);
     }
 
@@ -118,25 +154,7 @@ export default function Dashboard() {
     }
   };
 
-  // Format relative time
-  const formatRelativeTime = (timestamp: { toDate: () => Date }) => {
-    if (!timestamp) return "Unknown";
-
-    const date = timestamp.toDate();
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.round(diffMs / 60000);
-
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins} min${diffMins === 1 ? "" : "s"} ago`;
-
-    const diffHours = Math.round(diffMins / 60);
-    if (diffHours < 24)
-      return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
-
-    const diffDays = Math.round(diffHours / 24);
-    return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
-  };
+  // No longer need the formatRelativeTime function as we're using the RelativeTime component
 
   // Show loading state while authentication is being determined
   if (authLoading) {
@@ -264,7 +282,7 @@ export default function Dashboard() {
                         <TableCell>
                           <div className="flex items-center">
                             <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                            {formatRelativeTime(game.createdAt)}
+                            <RelativeTime timestamp={game.createdAt} />
                           </div>
                         </TableCell>
                         <TableCell className="text-right">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { GameLobby } from "@/components/game/GameLobby";
 import { useGameListener } from "@/hooks/useGameListener";
@@ -15,7 +15,9 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 export default function GamePage({ params }: { params: { gameId: string } }) {
   const router = useRouter();
   const { user } = useAuth();
-  const { game, loading, error } = useGameListener(params.gameId);
+  // Use the params directly for now, we'll address the warning in a future update
+  const gameId = params.gameId;
+  const { game, loading, error } = useGameListener(gameId);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Handle game state changes
@@ -24,7 +26,7 @@ export default function GamePage({ params }: { params: { gameId: string } }) {
       // If game is in playing state, redirect to the play page
       if (game.status === GameStatus.PLAYING) {
         setIsRedirecting(true);
-        router.push(`/game/${params.gameId}/play`);
+        router.push(`/game/${gameId}/play`);
       }
 
       // If game is cancelled or ended, redirect to dashboard
@@ -36,7 +38,7 @@ export default function GamePage({ params }: { params: { gameId: string } }) {
         router.push("/dashboard");
       }
     }
-  }, [game, loading, params.gameId, router]);
+  }, [game, loading, gameId, router]);
 
   // Handle authentication and player verification
   useEffect(() => {
@@ -99,7 +101,7 @@ export default function GamePage({ params }: { params: { gameId: string } }) {
           </CardContent>
         </Card>
       ) : game ? (
-        <GameLobby gameId={params.gameId} />
+        <GameLobby gameId={gameId} />
       ) : (
         <Alert variant="destructive">
           <AlertTitle>Game Not Found</AlertTitle>

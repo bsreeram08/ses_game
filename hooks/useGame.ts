@@ -336,26 +336,65 @@ export const useGame = () => {
   
   /**
    * Get active games for the current user
-   * @returns List of active games
+   * @param useListener Whether to use a real-time listener (for dashboard)
+   * @param onUpdate Callback for listener updates
+   * @param onError Callback for listener errors
+   * @returns Either a Promise<Game[]> or an unsubscribe function
    */
-  const getActiveGames = useCallback(async (): Promise<Game[]> => {
-    if (!user) {
-      return [];
-    }
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      return await gameService.getActiveGamesForUser(user.uid);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
-      setError(errorMessage);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, [user, gameService]);
+  const getActiveGames = useCallback(
+    (
+      useListener: boolean = false,
+      onUpdate?: (games: Game[]) => void,
+      onError?: (error: Error) => void
+    ): Promise<Game[]> | (() => void) => {
+      if (!user) {
+        if (useListener && onUpdate) {
+          onUpdate([]);
+          return () => {}; // Empty unsubscribe function
+        }
+        return Promise.resolve([]);
+      }
+      
+      if (!useListener) {
+        setLoading(true);
+        setError(null);
+        
+        return new Promise<Game[]>(async (resolve) => {
+          try {
+            const result = await (gameService.getActiveGamesForUser(user.uid, false) as Promise<Game[]>);
+            resolve(result);
+          } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+            setError(errorMessage);
+            resolve([]);
+          } finally {
+            setLoading(false);
+          }
+        });
+      }
+      
+      // Use the real-time listener
+      return gameService.getActiveGamesForUser(
+        user.uid,
+        true,
+        (games) => {
+          if (onUpdate) {
+            onUpdate(games);
+          }
+          setLoading(false);
+        },
+        (error) => {
+          const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+          setError(errorMessage);
+          if (onError) {
+            onError(error);
+          }
+          setLoading(false);
+        }
+      ) as () => void;
+    },
+    [user, gameService]
+  );
   
   return {
     loading,

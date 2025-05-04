@@ -10,7 +10,10 @@ import {
   where,
   getDocs,
   runTransaction,
-  increment
+  increment,
+  onSnapshot,
+  QuerySnapshot,
+  DocumentData
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import { nanoid } from 'nanoid';
@@ -549,41 +552,95 @@ export class GameService {
   /**
    * Get active games for a user
    * @param userId The user ID
-   * @returns List of active games the user is in
+   * @param useListener Whether to use a real-time listener (for dashboard)
+   * @param onUpdate Callback for listener updates
+   * @param onError Callback for listener errors
+   * @returns Either a Promise<Game[]> or an unsubscribe function
    */
-  async getActiveGamesForUser(userId: string): Promise<Game[]> {
-    try {
-      if (!userId) {
-        console.warn('No user ID provided to getActiveGamesForUser');
-        return [];
+  getActiveGamesForUser(
+    userId: string, 
+    useListener: boolean = false,
+    onUpdate?: (games: Game[]) => void,
+    onError?: (error: Error) => void
+  ): Promise<Game[]> | (() => void) {
+    if (!userId) {
+      console.warn('No user ID provided to getActiveGamesForUser');
+      if (useListener && onUpdate) {
+        onUpdate([]);
+        return () => {}; // Empty unsubscribe function
       }
+      return Promise.resolve([]);
+    }
 
-      // First check if any games exist for this user to avoid query errors
-      const checkQuery = query(
-        collection(db, this.gamesCollection),
-        where('status', 'in', [GameStatus.LOBBY, GameStatus.PLAYING])
+    // Create the query for active games
+    const gamesQuery = query(
+      collection(db, this.gamesCollection),
+      where('status', 'in', [GameStatus.LOBBY, GameStatus.PLAYING])
+    );
+    
+    // If using a listener, set up the subscription
+    if (useListener) {
+      console.log('Setting up real-time listener for active games');
+      
+      // Set up the snapshot listener
+      const unsubscribe = onSnapshot(
+        gamesQuery,
+        (querySnapshot: QuerySnapshot<DocumentData>) => {
+          // Process the snapshot data
+          const games: Game[] = [];
+          
+          querySnapshot.forEach((doc) => {
+            const gameData = doc.data() as Game;
+            if (gameData.players && gameData.players[userId]) {
+              games.push(gameData);
+            }
+          });
+          
+          console.log(`Real-time update: Found ${games.length} active games for user ${userId}`);
+          
+          // Call the update callback with the games
+          if (onUpdate) {
+            onUpdate(games);
+          }
+        },
+        (error) => {
+          console.error('Error in active games listener:', error);
+          if (onError) {
+            onError(error);
+          }
+        }
       );
       
-      const checkSnapshot = await getDocs(checkQuery);
-      
-      // If no active games at all, return empty array
-      if (checkSnapshot.empty) {
+      // Return the unsubscribe function
+      return unsubscribe;
+    } 
+    
+    // If not using a listener, use the regular promise-based approach
+    return new Promise<Game[]>(async (resolve, reject) => {
+      try {
+        const querySnapshot = await getDocs(gamesQuery);
+        
+        // If no active games at all, return empty array
+        if (querySnapshot.empty) {
+          resolve([]);
+          return;
+        }
+        
+        // Filter for games where the user is a player
+        const games: Game[] = [];
+        querySnapshot.forEach((doc) => {
+          const gameData = doc.data() as Game;
+          if (gameData.players && gameData.players[userId]) {
+            games.push(gameData);
+          }
+        });
+        
+        resolve(games);
+      } catch (error) {
+        console.error('Error getting active games for user:', error);
+        reject(error);
         return [];
       }
-      
-      // Now filter for games where the user is a player
-      const games: Game[] = [];
-      checkSnapshot.forEach((doc) => {
-        const gameData = doc.data() as Game;
-        if (gameData.players && gameData.players[userId]) {
-          games.push(gameData);
-        }
-      });
-      
-      return games;
-    } catch (error) {
-      console.error('Error getting active games for user:', error);
-      return [];
-    }
+    });
   }
 }
