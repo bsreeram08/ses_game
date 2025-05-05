@@ -1,4 +1,4 @@
-# Active Context: Indian Cards Against Humanity
+# Active Context: Samudhayam Ethirkum Attai
 
 ## Current Work Focus
 
@@ -46,5 +46,5 @@
 
 ## Learnings & Insights (Initial)
 
-- The project has pivoted to a custom ruleset, significantly differentiating it from standard CAH. This requires careful re-planning of core features.
+- The project has pivoted to a custom ruleset, significantly differentiating it. This requires careful re-planning of core features.
 - Flexibility in planning is key; the Memory Bank structure allows us to adapt to major requirement changes.

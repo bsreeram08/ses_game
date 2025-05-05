@@ -1,4 +1,4 @@
-# Progress: Indian Cards Against Humanity
+# Progress: Samudhayam Ethirkum Attai
 
 ## Current Status
 
@@ -54,4 +54,4 @@
 - **[YYYY-MM-DD HH:MM:SS] - Initial Decision:** Adopt the comprehensive plan outlined in `features.md` as the roadmap.
 - **[YYYY-MM-DD HH:MM:SS] - Initial Decision:** Establish a Memory Bank system for documentation and context persistence.
 - **[YYYY-MM-DD HH:MM:SS] - Initial Decision:** Utilize Next.js, Firebase (Auth, Firestore, RTDB, Functions), TypeScript, and shadcn/ui as the core technology stack.
-- **[2025-05-04 17:00:19] - Major Decision:** Adopted a custom ruleset (rotating dealer, collect black cards, custom duration/cards, AI feature) distinct from standard CAH, requiring updates to plans and features. (See `decisionLog.md`).
+- **[2025-05-04 17:00:19] - Major Decision:** Adopted a custom ruleset (rotating dealer, collect black cards, custom duration/cards, AI feature) distinct from the original inspiration, requiring updates to plans and features. (See `decisionLog.md`).

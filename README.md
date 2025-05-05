@@ -1,4 +1,4 @@
-# Samudhayam Ethirkum Attai (Indian Cards Against Humanity)
+# Samudhayam Ethirkum Attai
 
 A party game for horrible people, with an Indian twist. Built with Next.js, TypeScript, and Firebase.
 

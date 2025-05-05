@@ -112,7 +112,7 @@ export function CreateGameForm() {
         setDeckError('Failed to load card decks. Please try again.');
         // Fallback to default decks if there's an error
         setCardDecks([
-          { id: "india-base", name: "Standard Indian Deck", nsfw: false, description: "The original Indian Cards Against Humanity deck", blackCardsCount: 0, whiteCardsCount: 0 },
+          { id: "india-base", name: "Standard Indian Deck", nsfw: false, description: "The base deck with Indian cultural references.", blackCardsCount: 0, whiteCardsCount: 0 },
         ]);
       } finally {
         setLoadingDecks(false);

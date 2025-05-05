@@ -1,8 +1,8 @@
-# Project Brief: Indian Cards Against Humanity
+# Project Brief: Samudhayam Ethirkum Attai
 
 ## Core Goal
 
-To create a unique, digital, mobile-responsive card game inspired by "Cards Against Humanity" but with a distinct Indian flavor and a custom ruleset. The game involves players responding to prompts with answer cards, judged by a rotating "dealer," with the goal of collecting the most prompt cards. It should be playable online with friends or strangers, supporting 3-10 players.
+To create a unique, digital, mobile-responsive card game inspired by prompt-and-answer party games but with a distinct Indian flavor and a custom ruleset. The game involves players responding to prompts with answer cards, judged by a rotating "dealer," with the goal of collecting the most prompt cards. It should be playable online with friends or strangers, supporting 3-10 players.
 
 ## Key Objectives
 
@@ -26,7 +26,7 @@ To create a unique, digital, mobile-responsive card game inspired by "Cards Agai
 
 ## Source Document
 
-This brief is derived from the initial `features.md` document and subsequent clarifications defining a custom ruleset distinct from standard Cards Against Humanity.
+This brief is derived from the initial `features.md` document and subsequent clarifications defining a custom ruleset distinct from the original game inspiration.
 
 ---
 

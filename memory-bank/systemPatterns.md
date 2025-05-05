@@ -1,4 +1,4 @@
-# System Patterns: Indian Cards Against Humanity
+# System Patterns: Samudhayam Ethirkum Attai
 
 ## Core Architecture
 

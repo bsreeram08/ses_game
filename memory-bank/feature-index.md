@@ -1,4 +1,4 @@
-# Feature Index: Indian Cards Against Humanity
+# Feature Index: Samudhayam Ethirkum Attai
 
 This index tracks the status and links to documentation for all planned features.
 

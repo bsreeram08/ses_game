@@ -1,4 +1,4 @@
-# Tech Context: Indian Cards Against Humanity
+# Tech Context: Samudhayam Ethirkum Attai
 
 ## Core Technologies
 

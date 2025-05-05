@@ -1,8 +1,8 @@
-# Product Context: Indian Cards Against Humanity
+# Product Context: Samudhayam Ethirkum Attai
 
 ## Problem Solved
 
-- **Lack of Culturally Relevant Party Games:** Standard party games like Cards Against Humanity often lack references and humor specific to the Indian context, making them less relatable or engaging for Indian audiences.
+- **Lack of Culturally Relevant Party Games:** Standard party games often lack references and humor specific to the Indian context, making them less relatable or engaging for Indian audiences.
 - **Need for Digital Social Connection:** Provides a fun, interactive way for friends, family, and even strangers across India (and the diaspora) to connect and play together online, especially when physical gatherings aren't possible.
 - **Desire for Humorous & Edgy Entertainment:** Caters to an audience looking for witty, sometimes controversial, and distinctly Indian humor in a game format.
 

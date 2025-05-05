@@ -12,7 +12,7 @@ export default function BlackCardDisplay({ blackCard }: BlackCardDisplayProps) {
     <Card className="bg-black text-white border-0">
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xl font-bold">Cards Against Humanity</h3>
+          <h3 className="text-xl font-bold">Samudhayam Ethirkum Attai</h3>
           <div className="text-sm bg-white text-black px-2 py-1 rounded-full">
             Pick {blackCard.pick}
           </div>

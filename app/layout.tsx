@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Samudhayam Ethirkum Attai - Indian Cards Against Humanity",
+  title: "Samudhayam Ethirkum Attai - Online Party Game",
   description: "A party game for horrible people, with an Indian twist.",
 };
 

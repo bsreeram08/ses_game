@@ -36,9 +36,6 @@ export default function Home() {
             <span className="block text-primary">
               Samudhayam Ethirkum Attai
             </span>
-            <span className="block text-muted-foreground text-2xl sm:text-3xl mt-2">
-              Indian Cards Against Humanity
-            </span>
           </h1>
           <p className="max-w-2xl mx-auto text-xl text-muted-foreground">
             A party game for horrible people, with an Indian twist.
@@ -155,7 +152,7 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="text-center text-sm text-muted-foreground pt-8 border-t border-border">
-          <p>© 2025 Samudhayam Ethirkum Attai. All rights reserved.</p>
+          <p> 2025 Samudhayam Ethirkum Attai. All rights reserved.</p>
         </footer>
       </div>
     </div>
