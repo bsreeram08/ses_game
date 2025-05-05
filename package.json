@@ -2,7 +2,7 @@
   "name": "samudhayam_ethirkum_attai",
   "version": "0.1.0",
   "private": true,
-  "license": "MIT"
+  "license": "MIT",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
