@@ -27,8 +27,11 @@ export interface GameRound {
   dealerId: string;
   submissions: Record<string, PlayerSubmission>; // Map of player ID to submission
   submissionsRevealed: boolean;
+  revealedSubmissions?: PlayerSubmission[]; // Submissions that have been revealed to all players
   winnerId?: string;
-  startedAt: Timestamp;
+  roundWinnerNotified?: boolean; // Has the winner notification for this round been processed/displayed
+  startedAt: Timestamp; // This should be when the round actually starts (e.g. dealing phase finishes)
+  createdAt?: Timestamp; // When the round object was created in DB
   submissionDeadline?: Timestamp;
   judgeDeadline?: Timestamp;
   endedAt?: Timestamp;
@@ -196,3 +199,15 @@ export type GameEventUnion =
   | WinnerSelectedEvent
   | RoundEndedEvent
   | GameEndedEvent;
+
+/**
+ * Standardized response structure for gameplay service operations.
+ */
+export interface GameResponse {
+  success: boolean;
+  error?: string;
+  message?: string;        // Optional message for UI feedback
+  alreadyPlaying?: boolean; // Optional flag for startGame to indicate game was already in progress
+  // Add any other common response fields if necessary, e.g., gameId
+  [key: string]: any; // Allows for other specific data to be returned as needed
+}

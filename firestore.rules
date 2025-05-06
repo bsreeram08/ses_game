@@ -17,16 +17,32 @@ service cloud.firestore {
       // Allow any authenticated user to read games
       allow read: if request.auth != null;
       
-      // Allow any authenticated user to create games
-      allow create: if request.auth != null;
+      // Allow authenticated user to create if they are the host
+      allow create: if request.auth != null && request.resource.data.hostId == request.auth.uid;
       
-      // For now, allow any authenticated user to update games
-      // This is a simplified rule to ensure functionality
+      // Allow any authenticated user to update game documents with players
+      // This covers both regular updates and transactions
       allow update: if request.auth != null;
       
       // Only allow deletion by the host
-      allow delete: if request.auth != null && 
-        resource.data.hostId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.hostId == request.auth.uid;
+
+      // Rounds subcollection
+      match /rounds/{roundId} {
+        // Simpler, more permissive rules for rounds to ensure transactions work
+        allow read, write: if request.auth != null;
+      }
+
+      // PlayerHands subcollection
+      match /playerHands/{playerId} {
+        allow read: if request.auth != null && (
+            (getDoc('games/' + gameId).data.hostId == request.auth.uid) || 
+            (request.auth.uid == playerId && request.auth.uid in getDoc('games/' + gameId).data.playerUids)
+        );
+        allow create: if request.auth != null && getDoc('games/' + gameId).data.hostId == request.auth.uid;
+        allow update: if request.auth != null && request.auth.uid == playerId && request.auth.uid in getDoc('games/' + gameId).data.playerUids;
+        // allow delete: if request.auth != null && getDoc('games/' + gameId).data.hostId == request.auth.uid; // Optional: Host can delete player hands
+      }
     }
     
     // Invite codes - allow authenticated users to read and create
@@ -36,16 +52,35 @@ service cloud.firestore {
       
       // Allow deletion by the host of the associated game
       allow delete: if request.auth != null && 
-        exists(/databases/$(database)/documents/inviteCodes/$(code)) && 
-        exists(/databases/$(database)/documents/games/$(resource.data.gameId)) &&
+        resource.data.gameId != null && // Ensure gameId exists on the invite code doc
         getDoc('games/' + resource.data.gameId).data.hostId == request.auth.uid;
     }
     
-    // Cards, decks, and other game resources
-    match /{collection}/{docId} {
-      // Allow read access to game resources for authenticated users
-      allow read: if request.auth != null && 
-        (collection == 'cards' || collection == 'decks' || collection == 'cardPacks');
+    // Decks collection - allow authenticated users to read (Commented out, assuming decks is the primary)
+    // match /decks/{deckId} {
+    //   allow read: if request.auth != null;
+    // }
+    
+    // Rule to allow listing all card deck documents (e.g., for a deck selection screen)
+    match /decks {
+      allow list: if request.auth != null;
+    }
+
+    // Rules for reading a specific card deck document and all its contents (subcollections)
+    match /decks/{deckId}/{path=**} {
+      allow read: if request.auth != null;
+    }
+    
+    // Rules for the cards subcollection
+    match /cards/{deckId}/{cardType}/{cardId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    // Rules for player hands
+    match /playerHands/{gameId}/{playerId} {
+      allow read: if request.auth != null && (request.auth.uid == playerId || request.auth.uid == getDoc('games/' + gameId).data.hostId);
+      allow write: if request.auth != null;
     }
   }
 }

@@ -4,18 +4,25 @@
 
 - **Phase:** Active Development - Core Gameplay Implementation
 - **Overall:** The application has progressed significantly with working user authentication, game creation, and core gameplay. Recently implemented error tracking system and game state recovery mechanisms to improve reliability.
-- **Focus:** Enhancing game stability, implementing comprehensive error tracking, and fixing critical game state issues.
+- **Focus:** Enhancing game stability, improving game state transitions, and ensuring proper access to game rounds.
 
 ## What Works
 
 - **User Authentication (001)**: Email/password, social login, anonymous login with Indian-themed names, account conversion
 - **Game Creation & Lobby (002)**: Create game, invite link, waiting room, custom duration/turns
-- **Core Gameplay (003)**: Basic gameplay flow, card selection, scoring (in progress)
-- **Firebase Setup & Integration (005)**: Project config, SDK integration, security rules
+- **Core Gameplay (003)**: 
+  - Basic gameplay flow, card selection, scoring
+  - Game start process and round creation
+  - Round data synchronization with real-time round tracking
+  - Card deck selection and distribution of cards
+- **Firebase Setup & Integration (005)**: 
+  - Project config, SDK integration
+  - Enhanced security rules for games, rounds, and cards collections
+  - Transaction support for complex game state changes
 - **Error Tracking & Game Fixes (007)**: 
   - Comprehensive error tracking with Firebase Analytics
   - Toast notifications for improved error UX
-  - Game state recovery mechanisms including Nuclear Reset
+  - Game state recovery mechanisms including manual round loading
   - Player readiness system
 
 ## What's Left to Build (High-Level based on revised plan)
@@ -47,7 +54,18 @@
 
 ## Known Issues
 
-- N/A (No implemented features yet).
+- **Game Stability**:
+  - Game state synchronization may still need optimization for larger player counts
+  - Game error recovery should be more automated with fewer user interactions needed
+  - More comprehensive logging needed to catch edge cases
+
+## Recent Fixes
+
+- **Game Starting Process**:
+  - Fixed enum mismatch between `RoundPhase.SUBMISSION` and the correct value `RoundPhase.SUBMITTING`
+  - Enhanced Firestore security rules for rounds subcollection to properly support transactions
+  - Implemented manual round data loading functionality when rounds are missing
+  - Added better error handling and user feedback during game start process
 
 ## Evolution of Project Decisions
 

@@ -1,8 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { gameplayService } from '@/lib/services/gameplayService';
-import { GameResponse } from '@/types/game';
-import { GameState, RoundPhase } from '@/types/gameplay';
+import { GameState, RoundPhase, GameResponse } from '@/types/gameplay';
 import { WhiteCard } from '@/types/cards';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
@@ -26,7 +25,14 @@ export function useGameplay(gameId: string) {
       doc(db, 'games', gameId),
       (doc) => {
         if (doc.exists()) {
-          setGameState(doc.data() as GameState);
+          const gameData = doc.data() as GameState;
+          console.log("Game state snapshot received:", { 
+            status: gameData.status,
+            currentRound: gameData.currentRound,
+            // Access any custom properties safely with type casting
+            currentRoundId: (gameData as any).currentRoundId
+          });
+          setGameState(gameData);
           setLoading(false);
         } else {
           setError('Game not found');
@@ -42,6 +48,73 @@ export function useGameplay(gameId: string) {
 
     return () => unsubscribe();
   }, [gameId]);
+  
+  // Subscribe to rounds collection when game is playing
+  useEffect(() => {
+    if (!gameId || !gameState || gameState.status !== 'playing') return;
+    
+    // Extract current round ID from the game data
+    // First check if the rounds collection exists and has the current round
+    let currentRoundId: string | null = null;
+    
+    if (gameState.rounds && gameState.currentRound !== undefined && 
+        gameState.rounds[gameState.currentRound]) {
+      // Try to get the round ID from the round data
+      const roundData = gameState.rounds[gameState.currentRound];
+      if (roundData && typeof roundData === 'object' && 'id' in roundData) {
+        currentRoundId = roundData.id as string;
+      }
+    }
+    
+    // Fallback to direct currentRoundId property if it exists in the data structure
+    if (!currentRoundId && 'currentRoundId' in gameState) {
+      currentRoundId = (gameState as any).currentRoundId;  
+    }
+    
+    if (!currentRoundId) {
+      console.log("No current round ID available yet for game", gameId);
+      return; // Exit if no round ID is available
+    }
+    
+    console.log("Setting up rounds listener for game", gameId, "round ID", currentRoundId);
+    
+    // Create a reference to the specific round document
+    const roundRef = doc(db, 'games', gameId, 'rounds', currentRoundId);
+    
+    const unsubscribeRounds = onSnapshot(
+      roundRef,
+      (roundDoc) => {
+        if (roundDoc.exists()) {
+          console.log("Round data received:", roundDoc.id);
+          // Update game state with the round data
+          setGameState(prevState => {
+            if (!prevState) return prevState;
+            
+            // Clone the previous state
+            const newState = {...prevState};
+            
+            // Initialize rounds object if it doesn't exist
+            if (!newState.rounds) {
+              newState.rounds = {};
+            }
+            
+            // Add the round data to the rounds object using currentRound (index) or defaulting to 1
+            const roundIndex = prevState.currentRound || 1;
+            newState.rounds[roundIndex] = roundDoc.data() as any;
+            
+            return newState;
+          });
+        } else {
+          console.warn("Round document doesn't exist:", currentRoundId);
+        }
+      },
+      (err) => {
+        console.error("Error subscribing to round:", err);
+      }
+    );
+    
+    return () => unsubscribeRounds();
+  }, [gameId, gameState?.status, gameState?.currentRound, gameState?.rounds]);
 
   // Load player's hand when game state changes
   useEffect(() => {

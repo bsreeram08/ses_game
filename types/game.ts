@@ -35,6 +35,7 @@ export interface GamePlayer {
   status: PlayerStatus;  // Current status in the game
   isHost: boolean;       // Whether the player is the host
   score?: number;        // Player's score (during gameplay)
+  hand?: string[];       // IDs of cards in player's hand
   joinedAt: Timestamp;   // When the player joined
   lastActive: Timestamp; // Last activity timestamp
 }
@@ -44,10 +45,14 @@ export interface GamePlayer {
  */
 export interface GameSettings {
   playerLimit: number;   // Maximum number of players (3-10)
+  minPlayers?: number;    // Minimum number of players to start (e.g., 3)
   roundsPerPlayer: number; // Number of rounds each player will be the dealer
+  cardsPerPlayer?: number; // Number of white cards dealt to each player (e.g., 10)
+  submissionTimeLimit?: number; // Time limit in seconds for players to submit cards
   familyMode: boolean;   // Whether family-friendly mode is enabled
   cardDeckId: string;    // ID of the card deck to use
-  timeLimit?: number;    // Time limit for each round in seconds (optional)
+  deckId?: string;       // ID of the card deck to use
+  timeLimit?: number;    // Time limit for each round in seconds (optional) - perhaps DEPRECATE in favor of submissionTimeLimit/judgeTimeLimit
   password?: string;     // Optional password for private games (future)
 }
 

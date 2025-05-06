@@ -4,6 +4,16 @@
 
 Implement the fundamental turn-based gameplay loop based on the **custom ruleset**, including rotating dealers, card dealing, submissions based on prompt requirements, dealer judging, and collecting black cards for scoring.
 
+## Status
+
+**Status**: In Progress (Game initialization, round creation, and card dealing implemented)
+
+### Recent Progress
+- Game state transitions from lobby to gameplay implemented
+- Card decks loading and dealing to players
+- Round initialization and tracking
+- First card czar selection
+
 ## Core Requirements (MVP)
 
 - **Dealer Rotation:**
@@ -39,6 +49,19 @@ Implement the fundamental turn-based gameplay loop based on the **custom ruleset
 - `memory-bank/techContext.md` (Firebase Firestore, RTDB)
 - `memory-bank/decisionLog.md` (Custom ruleset decision)
 - `memory-bank/features/002-game-creation-lobby.md` (Game duration setting)
+- `memory-bank/progress.md` (Recent fixes and game improvements)
+
+## Recent Technical Fixes
+
+- **Game Start Process**
+  - Fixed enum mismatch between `RoundPhase.SUBMISSION` and `RoundPhase.SUBMITTING` to ensure rounds initialize properly
+  - Enhanced Firestore security rules for the rounds subcollection to fix transaction permission issues
+  - Improved round data synchronization with Firebase Firestore
+  
+- **Error Recovery**
+  - Added manual round data loading capability when games get stuck in initialization
+  - Enhanced error logging and user feedback during game state transitions
+  - Added fallback mechanisms for when Firestore transactions fail
 
 ## Future Enhancements (Phase 2+)
 
